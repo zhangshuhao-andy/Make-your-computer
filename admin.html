@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>config-pc 订单审核</title>
+    <style>
+        body { font-family: sans-serif; background:#111; color:#eee; padding:24px; max-width:640px; margin:0 auto; }
+        input,button { padding:10px; margin:6px 0; }
+        .order { border:1px solid #333; border-radius:8px; padding:12px; margin:10px 0; }
+    </style>
+</head>
+<body>
+    <h1>config-pc 付款审核</h1>
+    <p>独立站订单，与 ZSH Hub 会员无关。</p>
+    <label>审核密钥 <input type="password" id="adminKey" style="width:100%"></label>
+    <button onclick="loadOrders()">刷新待审订单</button>
+    <div id="list"></div>
+<script>
+async function api(path, opts) {
+    const key = document.getElementById('adminKey').value;
+    const r = await fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json', 'X-Cpsite-Admin-Key': key } }, opts || {}));
+    return r.json();
+}
+async function loadOrders() {
+    const d = await api('/api/cpsite/admin/orders');
+    const el = document.getElementById('list');
+    if (!d.ok) { el.textContent = '密钥错误或无权'; return; }
+    el.innerHTML = (d.orders || []).map(o => `
+        <div class="order">
+            <div>#${o.id} · ${o.username} · ¥${o.amount} · ${o.user_confirmed ? '已确认付款' : '未确认'}</div>
+            <button onclick="approve(${o.id})">通过解锁</button>
+        </div>`).join('') || '<p>无待审订单</p>';
+}
+async function approve(id) {
+    const d = await api('/api/cpsite/admin/orders/' + id + '/approve', { method: 'POST', body: '{}' });
+    alert(d.ok ? '已通过' : '失败');
+    loadOrders();
+}
+</script>
+</body>
+</html>

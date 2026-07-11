@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS ULTRA | CONSTELATION NETWORK 2.0</title>
+    <script src="/zsh-gamehub/games/hub-mobile.js?v=669p"></script>
+    <link rel="stylesheet" href="/zsh-gamehub/games/hub-mobile.css?v=669p">
+    <script src="/zsh-gamehub/games/nexus-bg.js?v=669p"></script>
+    <script src="/zsh-gamehub/games/nexus-mobile-touch.js?v=669p"></script>
+    <style>
+        :root {
+            --neon-link: #00f2ff;
+            --neon-danger: #ff0055;
+            --bg: #010206;
+            --glass: rgba(8, 12, 20, 0.95);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Fira Code', 'Inter', sans-serif; overflow: hidden; }
+
+        .cpsite-top {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 10px 18px; background: rgba(4, 8, 16, 0.92); border-bottom: 1px solid rgba(0, 242, 255, 0.12);
+        }
+        .cpsite-top-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .cpsite-top a, .cpsite-top button {
+            border: 1px solid rgba(0, 242, 255, 0.25); background: rgba(0, 242, 255, 0.06);
+            color: #cde; border-radius: 999px; padding: 8px 16px; font-size: 0.85rem;
+            text-decoration: none; cursor: pointer; font-family: inherit;
+        }
+        .cpsite-top a:hover, .cpsite-top button:hover { border-color: var(--neon-link); color: #fff; }
+        .cpsite-top button.active { background: var(--neon-link); color: #000; font-weight: 700; }
+        #cpsiteUpgradeBtn {
+            border-color: rgba(255, 200, 80, 0.45); background: rgba(255, 180, 50, 0.12); color: #ffd98a;
+            font-weight: 700;
+        }
+        .cpsite-top-right { display: flex; gap: 8px; align-items: center; }
+        #cpsiteAuthUser { cursor: pointer; font-size: 0.85rem; color: #8ab; display: none; }
+        .cpsite-auth {
+            position: fixed; top: 52px; left: 0; right: 0; z-index: 199;
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 8px;
+            background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px);
+        }
+        .cpsite-auth input {
+            background: #000; border: 1px solid #333; color: #fff; padding: 8px 12px; border-radius: 10px; width: 140px;
+        }
+        .cpsite-auth button { background: var(--neon-link); color: #000; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .cpsite-auth-hint { width: 100%; text-align: center; font-size: 0.78rem; color: #6a8; margin-top: 2px; }
+
+        #constellation-bg { position: fixed; top: 0; left: 0; z-index: 1; }
+        body { padding-top: 52px; }
+        .nexus-wrapper { position: relative; z-index: 10; height: calc(100vh - 52px); overflow-y: auto; scroll-snap-type: none; scrollbar-width: none; }
+        .nexus-wrapper::-webkit-scrollbar { display: none; }
+
+        section { display: flex; justify-content: center; scroll-snap-align: none; padding: 24px 20px; }
+        section.form-section { min-height: calc(100vh - 52px); align-items: center; }
+        section.result-section { min-height: calc(100vh - 52px); align-items: flex-start; padding-top: 32px; padding-bottom: 48px; scroll-margin-top: 12px; }
+
+        .control-hub {
+            background: var(--glass); border: 1px solid rgba(0, 242, 255, 0.15);
+            border-radius: 50px; padding: 60px; width: 100%; max-width: 1200px;
+            backdrop-filter: blur(80px); box-shadow: 0 0 150px rgba(0,0,0,0.8);
+        }
+
+        .title-aura { text-align: center; margin-bottom: 60px; }
+        .title-aura h1 { font-size: 4.5rem; font-weight: 950; letter-spacing: -5px; background: linear-gradient(135deg, #fff, var(--neon-link)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .input-cluster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 50px; }
+        .field label { font-size: 0.7rem; color: #556677; text-transform: uppercase; letter-spacing: 3px; display: block; margin-bottom: 15px; }
+        input, select { width: 100%; background: #000; border: 1px solid #222; color: #fff; padding: 22px; border-radius: 18px; font-size: 1rem; transition: 0.4s; font-family: inherit; }
+        input:focus, select:focus { border-color: var(--neon-link); box-shadow: 0 0 40px rgba(0, 242, 255, 0.2); outline: none; }
+
+        .pc-tier-bar {
+            margin-bottom: 24px; padding: 16px 20px; border-radius: 18px;
+            background: rgba(0, 242, 255, 0.04); border: 1px solid rgba(0, 242, 255, 0.15);
+            font-size: 0.92rem; line-height: 1.6; color: #99aabb;
+        }
+        .pc-tier-bar.warn { border-color: rgba(255, 0, 85, 0.35); background: rgba(255, 0, 85, 0.06); }
+
+        .ignite-trigger { width: 100%; padding: 30px; background: var(--neon-link); color: #000; border: none; border-radius: 25px; font-weight: 950; font-size: 1.8rem; cursor: pointer; letter-spacing: 10px; text-transform: uppercase; font-family: inherit; }
+        .ignite-trigger:hover { filter: brightness(1.2); transform: scale(1.01); }
+        .ignite-trigger:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+        .result-matrix { background: #000; border-left: 20px solid var(--neon-link); border-radius: 40px; padding: 70px; width: 100%; max-width: 1050px; display: none; transition: 1.2s cubic-bezier(0.19, 1, 0.22, 1); }
+        .price-massive { font-size: 8rem; font-weight: 950; font-family: Impact, sans-serif; margin: 10px 0; letter-spacing: -3px; }
+        .node-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 45px; border-top: 1px solid #111; padding-top: 45px; margin-top: 40px; }
+        .node-item span { color: #444; font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 12px; }
+        .node-item b { color: var(--neon-link); font-size: 1.2rem; }
+
+        .alt-laptops { margin-top: 30px; padding: 25px; background: rgba(0, 242, 255, 0.02); border: 1px dashed rgba(0, 242, 255, 0.3); border-radius: 15px; }
+        .alt-laptops h6 { color: #8899aa; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
+        .alt-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #111; font-size: 0.95rem; }
+        .alt-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .alt-item b { color: #fff; }
+        .alt-item span { color: var(--neon-link); }
+
+        .ai-feedback { margin-top: 50px; padding: 35px; background: rgba(0, 242, 255, 0.03); border: 1px solid rgba(0, 242, 255, 0.08); border-radius: 25px; }
+        .ai-feedback h6 { color: var(--neon-link); font-size: 0.9rem; margin-bottom: 15px; }
+        .ai-feedback p { color: #8899aa; line-height: 1.8; font-size: 1rem; }
+
+        .pc-pay-modal { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; padding: 20px; }
+        .pc-pay-modal.open { display: flex; }
+        .pc-pay-card { background: #0a1018; border: 1px solid rgba(0,242,255,0.2); border-radius: 24px; padding: 32px; max-width: 360px; width: 100%; text-align: center; }
+        .pc-pay-card h3 { color: var(--neon-link); margin-bottom: 8px; }
+        .pc-pay-card p { color: #8899aa; margin-bottom: 12px; font-size: 0.9rem; }
+        .pc-pay-card img { border-radius: 12px; margin-bottom: 16px; }
+        .pc-pay-card button { width: 100%; margin-top: 8px; padding: 12px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; font-family: inherit; }
+        #pcPayConfirmBtn { background: var(--neon-link); color: #000; }
+        #pcPayCloseBtn { background: transparent; color: #8899aa; border: 1px solid #333 !important; }
+        #pcPayMsg { margin-top: 12px; font-size: 0.85rem; color: #8cf; min-height: 1.2em; }
+    </style>
+</head>
+<body class="nexus-page">
+
+<div class="cpsite-top">
+    <div class="cpsite-top-left">
+        <a href="/zsh-gamehub/#hub" data-i18n="goHub">前往 ZSH 游戏大厅 →</a>
+        <button type="button" id="cpsiteUpgradeBtn" data-i18n="upgradeMember">升级会员</button>
+    </div>
+    <div class="cpsite-top-right">
+        <span id="cpsiteAuthUser"></span>
+        <button type="button" id="pcLangZh" data-i18n="langZh">中文</button>
+        <button type="button" id="pcLangEn" data-i18n="langEn">EN</button>
+    </div>
+</div>
+
+<div class="cpsite-auth" id="cpsiteAuthBox">
+    <input id="authUserIn" type="text" data-i18n="username" placeholder="用户名">
+    <input id="authPassIn" type="password" data-i18n="password" placeholder="密码">
+    <button type="button" id="authLoginBtn" data-i18n="login">登录</button>
+    <button type="button" id="authRegBtn" data-i18n="register">注册</button>
+    <div class="cpsite-auth-hint" id="cpsiteAuthHint">独立账号，与 ZSH 游戏大厅不互通</div>
+</div>
+
+<canvas id="constellation-bg"></canvas>
+
+<div class="nexus-wrapper" id="nexusScroller">
+    <section class="form-section">
+        <div class="control-hub">
+            <div class="title-aura">
+                <h1>NEXUS OMNI v2026</h1>
+                <p>Universal Hardware Genetic Algorithm</p>
+            </div>
+            <div class="input-cluster">
+                <div class="field"><label>采购预算 (CNY)</label><input type="number" id="budget" value="30000"></div>
+                <div class="field"><label>硬件形态</label><select id="form"><option value="desktop">台式机/服务器 (全库解算)</option><option value="laptop">笔记本 (主推+双备选)</option></select></div>
+                <div class="field"><label>核心架构</label><select id="arch"><option value="intel">Intel Core / Xeon</option><option value="amd">AMD Ryzen / EPYC</option><option value="apple">Apple Silicon (M系列)</option></select></div>
+                <div class="field"><label>应用场景</label><select id="usage"><option value="game">游戏竞技</option><option value="ai">AI 算力大模型</option><option value="dev">编程开发</option><option value="edit">创作剪辑</option><option value="server">服务器/数据中心</option><option value="office">出差办公</option><option value="student">学生全能</option></select></div>
+                <div class="field"><label>配件风格</label><select id="style"><option value="stealth">纯黑无光 (工业风)</option><option value="rgb">极致灯效 (电竞风)</option><option value="white">冰雪纯白 (海景房)</option></select></div>
+                <div class="field"><label>散热体系</label><select id="cool"><option value="air">风冷/被动散热</option><option value="liquid">一体式水冷</option><option value="custom">极限分体水冷</option></select></div>
+            </div>
+            <div class="pc-tier-bar" id="pcTierBar">正在检查额度…</div>
+            <button class="ignite-trigger" type="button" id="pcGenerateBtn" disabled>生成唯一硬件基因 ➔</button>
+        </div>
+    </section>
+
+    <section class="result-section"><div class="result-matrix" id="resultCard"></div></section>
+</div>
+
+<div class="pc-pay-modal" id="pcPayModal">
+    <div class="pc-pay-card">
+        <h3 id="pcPayTitle">解锁配置电脑</h3>
+        <p id="pcPayAmount">¥5 一次性解锁</p>
+        <p id="pcPayHint">微信扫码付款 · 管理员审核后生效</p>
+        <img id="pcPayQr" src="/config-pc/assets/wechat-pay.jpg" alt="WeChat Pay" width="200" height="200">
+        <button type="button" id="pcPayConfirmBtn" data-i18n="payBtn">我已付款</button>
+        <button type="button" id="pcPayCloseBtn" data-i18n="payClose">关闭</button>
+        <p id="pcPayMsg"></p>
+    </div>
+</div>
+
+<script>
+    /** * [CORE PART 2: 极限扩容数据库] */
+    const DB = {
+        cpu: [
+        {n: "AMD Threadripper PRO 7995WX (96核)", p: 79999, a: 'amd'},
+        {n: "Intel Xeon W9-3495X (56核)", p: 45999, a: 'intel'},
+        {n: "AMD Threadripper 7980X (64核)", p: 39999, a: 'amd'},
+        {n: "AMD Threadripper 7970X (32核)", p: 21999, a: 'amd'},
+        {n: "AMD Threadripper 7960X (24核)", p: 14999, a: 'amd'},
+        {n: "Intel Xeon W7-3465X (28核)", p: 28999, a: 'intel'},
+        {n: "Intel Xeon W5-3435X (16核)", p: 12999, a: 'intel'},
+        {n: "AMD Ryzen 9 9950X3D", p: 5699, a: 'amd'},
+        {n: "AMD Ryzen 9 9950X", p: 4899, a: 'amd'},
+        {n: "Intel Core i9-14900KS", p: 5599, a: 'intel'},
+        {n: "Intel Core Ultra 9 285K", p: 4599, a: 'intel'},
+        {n: "AMD Ryzen 9 9900X3D", p: 4299, a: 'amd'},
+        {n: "AMD Ryzen 9 9900X", p: 3599, a: 'amd'},
+        {n: "Intel Core i9-14900K", p: 3999, a: 'intel'},
+        {n: "Intel Core i9-14900KF", p: 3799, a: 'intel'},
+        {n: "AMD Ryzen 9 7950X3D", p: 3499, a: 'amd'},
+        {n: "AMD Ryzen 9 7950X", p: 2999, a: 'amd'},
+        {n: "Intel Core Ultra 7 265K", p: 2999, a: 'intel'},
+        {n: "AMD Ryzen 7 9800X3D", p: 3299, a: 'amd'},
+        {n: "AMD Ryzen 7 9700X", p: 2599, a: 'amd'},
+        {n: "Intel Core i7-14700K", p: 2799, a: 'intel'},
+        {n: "Intel Core i7-14700KF", p: 2599, a: 'intel'},
+        {n: "AMD Ryzen 7 7800X3D", p: 2499, a: 'amd'},
+        {n: "AMD Ryzen 7 7700X", p: 1999, a: 'amd'},
+        {n: "Intel Core Ultra 5 245K", p: 2099, a: 'intel'},
+        {n: "AMD Ryzen 5 9600X", p: 1899, a: 'amd'},
+        {n: "Intel Core i5-14600K", p: 1799, a: 'intel'},
+        {n: "AMD Ryzen 5 7600X", p: 1499, a: 'amd'},
+        {n: "Intel Core i5-14400F", p: 1199, a: 'intel'},
+        {n: "AMD Ryzen 5 7500F", p: 950, a: 'amd'},
+        {n: "Intel Core i5-12400F", p: 650, a: 'intel'},
+        {n: "AMD Ryzen 5 5600X", p: 699, a: 'amd'},
+        {n: "AMD Ryzen 5 5600", p: 599, a: 'amd'},
+        {n: "Intel Core i3-14100F", p: 699, a: 'intel'},
+        {n: "Intel Core i3-12100F", p: 499, a: 'intel'},
+        {n: "AMD Ryzen 7 8700G", p: 2199, a: 'amd'},
+        {n: "AMD Ryzen 5 8600G", p: 1599, a: 'amd'},
+        {n: "AMD Ryzen 9 7900X", p: 2699, a: 'amd'},
+        {n: "AMD Ryzen 9 7900", p: 2499, a: 'amd'},
+        {n: "Intel Core i7-13700K", p: 2299, a: 'intel'},
+        {n: "Intel Core i5-13600K", p: 1699, a: 'intel'},
+        {n: "AMD Ryzen 7 5800X3D", p: 1799, a: 'amd'},
+        {n: "AMD Ryzen 7 5700X", p: 1099, a: 'amd'},
+        {n: "Intel Core i5-13400F", p: 999, a: 'intel'},
+        {n: "AMD Ryzen 5 5500", p: 499, a: 'amd'},
+        {n: "Intel Core i7-12700K", p: 1899, a: 'intel'},
+        {n: "AMD Ryzen 9 5900X", p: 1599, a: 'amd'},
+        {n: "Intel Core i9-13900K", p: 3299, a: 'intel'},
+        {n: "AMD Ryzen 7 7700", p: 1799, a: 'amd'},
+        {n: "Intel Core Ultra 5 225F", p: 1699, a: 'intel'}
+        ],
+        gpu: [
+        {n: "NVIDIA H100 80GB SXM5 (AI算力)", p: 250000},
+        {n: "NVIDIA A100 80GB PCIe", p: 120000},
+        {n: "NVIDIA L40S 48GB", p: 68000},
+        {n: "NVIDIA RTX 6000 Ada Generation 48GB", p: 55000},
+        {n: "NVIDIA RTX 5000 Ada Generation 32GB", p: 32000},
+        {n: "NVIDIA RTX 4500 Ada Generation 24GB", p: 18999},
+        {n: "NVIDIA RTX 4000 Ada Generation 20GB", p: 12999},
+        {n: "NVIDIA RTX 4000 SFF Ada 20GB", p: 10999},
+        {n: "NVIDIA RTX A6000 48GB", p: 32000},
+        {n: "NVIDIA RTX A5500 24GB", p: 18999},
+        {n: "NVIDIA RTX A5000 24GB", p: 14999},
+        {n: "NVIDIA RTX A4500 20GB", p: 9999},
+        {n: "NVIDIA RTX A4000 16GB", p: 6999},
+        {n: "NVIDIA Quadro RTX 8000 48GB", p: 22000},
+        {n: "NVIDIA RTX 5090 D 32G", p: 15999},
+        {n: "NVIDIA RTX 5090 32G (非公版)", p: 17999},
+        {n: "NVIDIA RTX 5080 16G", p: 8999},
+        {n: "NVIDIA RTX 5070 Ti 16G", p: 6499},
+        {n: "NVIDIA RTX 5070 12G", p: 4999},
+        {n: "NVIDIA RTX 5060 Ti 16G", p: 3699},
+        {n: "NVIDIA RTX 5060 Ti 8G", p: 3199},
+        {n: "NVIDIA RTX 5060 12G", p: 2499},
+        {n: "NVIDIA RTX 5050 8G", p: 1899},
+        {n: "NVIDIA RTX 4090 D 24G", p: 13999},
+        {n: "NVIDIA RTX 4090 24G (非公版)", p: 15999},
+        {n: "NVIDIA RTX 4080 SUPER 16G", p: 7999},
+        {n: "NVIDIA RTX 4080 16G", p: 6999},
+        {n: "NVIDIA RTX 4070 Ti SUPER 16G", p: 5999},
+        {n: "NVIDIA RTX 4070 Ti 12G", p: 4999},
+        {n: "NVIDIA RTX 4070 SUPER 12G", p: 4599},
+        {n: "NVIDIA RTX 4070 12G", p: 3999},
+        {n: "NVIDIA RTX 4060 Ti 16G", p: 3299},
+        {n: "NVIDIA RTX 4060 Ti 8G", p: 2899},
+        {n: "NVIDIA RTX 4060 8G", p: 2199},
+        {n: "NVIDIA RTX 4050 6G", p: 1799},
+        {n: "NVIDIA RTX 3090 Ti 24G", p: 5999},
+        {n: "NVIDIA RTX 3090 24G", p: 4999},
+        {n: "NVIDIA RTX 3080 Ti 12G", p: 3999},
+        {n: "NVIDIA RTX 3080 10G", p: 3299},
+        {n: "NVIDIA RTX 3070 Ti 8G", p: 2799},
+        {n: "NVIDIA RTX 3070 8G", p: 2299},
+        {n: "NVIDIA RTX 3060 Ti 8G", p: 1899},
+        {n: "NVIDIA RTX 3060 12G", p: 1699},
+        {n: "NVIDIA RTX 3050 8G", p: 1399},
+        {n: "AMD Radeon RX 9080 XTX 24G", p: 8299},
+        {n: "AMD Radeon RX 9080 XT 20G", p: 6999},
+        {n: "AMD Radeon RX 9070 XT 16G", p: 5499},
+        {n: "AMD Radeon RX 9070 16G", p: 4499},
+        {n: "AMD Radeon RX 9060 XT 16G", p: 3299},
+        {n: "AMD Radeon RX 9060 XT 8G", p: 2699},
+        {n: "AMD Radeon RX 7900 XTX 24G", p: 5999},
+        {n: "AMD Radeon RX 7900 XT 20G", p: 4999},
+        {n: "AMD Radeon RX 7900 GRE 16G", p: 4299},
+        {n: "AMD Radeon RX 7800 XT 16G", p: 3499},
+        {n: "AMD Radeon RX 7700 XT 12G", p: 2899},
+        {n: "AMD Radeon RX 7600 XT 16G", p: 2299},
+        {n: "AMD Radeon RX 7600 8G", p: 1699},
+        {n: "AMD Radeon RX 6750 GRE 12G", p: 1799},
+        {n: "AMD Radeon RX 6650 XT 8G", p: 1499},
+        {n: "AMD Radeon RX 6600 XT 8G", p: 1299},
+        {n: "AMD Radeon RX 6600 8G", p: 1099},
+        {n: "AMD Radeon RX 6500 XT 4G", p: 899},
+        {n: "AMD Radeon RX 6950 XT 16G", p: 3799},
+        {n: "AMD Radeon RX 6900 XT 16G", p: 3299},
+        {n: "AMD Radeon RX 6800 XT 16G", p: 2799},
+        {n: "AMD Radeon RX 6800 16G", p: 2499},
+        {n: "AMD Radeon RX 6700 XT 12G", p: 1999},
+        {n: "Intel Arc B580 12G", p: 2199},
+        {n: "Intel Arc B570 10G", p: 1799},
+        {n: "Intel Arc A770 16G", p: 1699},
+        {n: "Intel Arc A750 8G", p: 1299},
+        {n: "Intel Arc A580 8G", p: 1099},
+        {n: "Intel Arc A380 6G", p: 699},
+        {n: "华硕 TUF RTX 5090 D O24G", p: 16499},
+        {n: "微星 魔龙 RTX 5080 16G", p: 9299},
+        {n: "七彩虹 iGame RTX 5070 Ti Ultra W", p: 6799},
+        {n: "技嘉 魔鹰 RTX 5070 GAMING OC", p: 5199},
+        {n: "索泰 RTX 5060 Ti 16G 毁灭者", p: 3799},
+        {n: "影驰 RTX 5060 大将 12G", p: 2599},
+        {n: "蓝宝石 RX 9070 XT 16G 超白金", p: 5699},
+        {n: "撼讯 RX 7900 GRE 16G 暗黑犬", p: 4399},
+        {n: "讯景 RX 7800 XT 16G 海外版", p: 3599},
+        {n: "盈通 RX 6750 GRE 12G 大地之神", p: 1849},
+        {n: "蓝戟 Intel Arc B580 Index 12G", p: 2249},
+        {n: "NVIDIA RTX 4090 涡轮版 24G", p: 14599},
+        {n: "NVIDIA RTX 4080 涡轮版 16G", p: 7299},
+        {n: "NVIDIA Tesla T4 16GB", p: 4999},
+        {n: "NVIDIA Tesla V100 32GB", p: 8999},
+        {n: "NVIDIA RTX 2080 Ti 11G", p: 2499},
+        {n: "NVIDIA GTX 1660 SUPER 6G", p: 899},
+        {n: "NVIDIA GTX 1650 4G", p: 699},
+        {n: "AMD Radeon PRO W7900 48GB", p: 28999},
+        {n: "AMD Radeon PRO W7800 32GB", p: 18999},
+        {n: "AMD Radeon PRO W7700 16GB", p: 9999},
+        {n: "NVIDIA RTX A2000 12GB", p: 3999},
+        {n: "NVIDIA RTX A1000 8GB", p: 2499},
+        {n: "NVIDIA RTX 2000 Ada 16GB", p: 5999},
+        {n: "NVIDIA RTX 500 Ada 4GB", p: 1999},
+        {n: "AMD Radeon RX 5500 XT 8G", p: 799},
+        {n: "AMD RX 7700 XT 12G 撼讯", p: 2949}
+        ],
+        mobo: [
+        {n: "ASUS Pro WS WRX90E-SAGE SE", p: 9999, a: 'amd', s: 'stealth'},
+        {n: "ASUS Pro WS W790E-SAGE SE", p: 8999, a: 'intel', s: 'stealth'},
+        {n: "ROG MAXIMUS Z890 EXTREME", p: 8999, a: 'intel', s: 'rgb'},
+        {n: "ROG CROSSHAIR X870E EXTREME", p: 8599, a: 'amd', s: 'rgb'},
+        {n: "ROG MAXIMUS Z890 HERO", p: 4999, a: 'intel', s: 'rgb'},
+        {n: "MSI MEG Z890 ACE", p: 4599, a: 'intel', s: 'rgb'},
+        {n: "ASUS ROG STRIX Z890-A 吹雪", p: 2799, a: 'intel', s: 'white'},
+        {n: "微星 MPG Z890 EDGE TI WIFI", p: 2499, a: 'intel', s: 'white'},
+        {n: "技嘉 Z890 AORUS ELITE WIFI7", p: 2199, a: 'intel', s: 'stealth'},
+        {n: "MSI MAG B860M MORTAR WIFI", p: 1299, a: 'intel', s: 'stealth'},
+        {n: "华硕 TUF GAMING B860-PLUS WIFI", p: 1199, a: 'intel', s: 'stealth'},
+        {n: "ASUS Prime H810M-K", p: 599, a: 'intel', s: 'stealth'},
+        {n: "ASUS ROG STRIX B850-A 吹雪", p: 1899, a: 'amd', s: 'white'},
+        {n: "MSI MAG B850M MORTAR WIFI", p: 1199, a: 'amd', s: 'stealth'},
+        {n: "技嘉 B850M AORUS ELITE WIFI7", p: 1099, a: 'amd', s: 'stealth'},
+        {n: "华硕 TUF GAMING B650-PLUS WIFI", p: 1099, a: 'amd', s: 'stealth'},
+        {n: "微星 MAG B650M MORTAR WIFI", p: 999, a: 'amd', s: 'stealth'},
+        {n: "华擎 X870E 太极", p: 3299, a: 'amd', s: 'rgb'},
+        {n: "技嘉 X870E AORUS MASTER", p: 3999, a: 'amd', s: 'rgb'},
+        {n: "华硕 ROG STRIX X870-A 吹雪", p: 2699, a: 'amd', s: 'white'},
+        {n: "微星 PRO Z790-P WIFI DDR5", p: 1599, a: 'intel', s: 'stealth'},
+        {n: "华硕 ROG STRIX B760-G 小吹雪", p: 1399, a: 'intel', s: 'white'},
+        {n: "技嘉 B760M AORUS ELITE AX", p: 999, a: 'intel', s: 'stealth'},
+        {n: "华擎 B650M Pro RS", p: 799, a: 'amd', s: 'stealth'},
+        {n: "铭瑄 B650M 终结者 WIFI", p: 699, a: 'amd', s: 'stealth'}
+        ],
+        ram: [
+        {n: "三星 256GB (8x32GB) DDR5-4800 ECC", p: 12000, s: 'stealth'},
+        {n: "芝奇 幻锋戟 RGB 96GB(48Gx2) DDR5-6800", p: 3599, s: 'rgb'},
+        {n: "芝奇 幻锋戟 RGB 64GB(32Gx2) DDR5-8000", p: 2599, s: 'rgb'},
+        {n: "海盗船 统治者泰坦 48GB(24Gx2) DDR5-7600", p: 1899, s: 'rgb'},
+        {n: "阿斯加特 女武神 64GB(32Gx2) DDR5-6400", p: 1499, s: 'white'},
+        {n: "光威 神策 32GB(16Gx2) DDR5-7200 RGB", p: 950, s: 'rgb'},
+        {n: "金百达 银爵 32GB(16Gx2) DDR5-6400", p: 699, s: 'stealth'},
+        {n: "光威 天策 16GB(8Gx2) DDR5-5600", p: 350, s: 'stealth'},
+        {n: "芝奇 幻锋戟 RGB 32GB(16Gx2) DDR5-6000", p: 799, s: 'rgb'},
+        {n: "威刚 XPG 龙耀 D600 32GB(16Gx2) DDR5-6000", p: 749, s: 'rgb'},
+        {n: "金士顿 Fury Beast 32GB(16Gx2) DDR5-6000", p: 699, s: 'stealth'},
+        {n: "宏碁 掠夺者 凌霜 32GB(16Gx2) DDR5-6000", p: 649, s: 'stealth'},
+        {n: "雷克沙 战神之刃 32GB(16Gx2) DDR5-6400", p: 729, s: 'rgb'},
+        {n: "科赋 炎龙 32GB(16Gx2) DDR5-6000", p: 679, s: 'rgb'},
+        {n: "十铨 T-Create 64GB(32Gx2) DDR5-5600", p: 1299, s: 'stealth'},
+        {n: "光威 天策 32GB(16Gx2) DDR5-6000 纯白", p: 599, s: 'white'},
+        {n: "金百达 星刃 16GB(8Gx2) DDR5-6800", p: 449, s: 'stealth'}
+        ],
+        ssd: [
+        {n: "Micron 9400 PRO 7.68TB U.3 企业级", p: 8999},
+        {n: "Intel Optane P5800X 1.6TB", p: 15999},
+        {n: "致态 TiPro8000 4TB PCIe 5.0", p: 3699},
+        {n: "三星 990 PRO 4TB", p: 2699},
+        {n: "西部数据 WD_BLACK SN850X 2TB", p: 1299},
+        {n: "致态 TiPlus7100 2TB", p: 999},
+        {n: "宏碁掠夺者 GM7 2TB", p: 850},
+        {n: "铠侠 RC20 1TB", p: 450},
+        {n: "三星 990 EVO Plus 2TB", p: 1099},
+        {n: "海康威视 A4000 2TB PCIe 4.0", p: 799}
+        ],
+        case: [
+        {n: "超微 4U GPU 塔式/机架双用工作站机箱", p: 4599, s: 'stealth'},
+        {n: "ROG 创世神 Hyperion GR701", p: 2999, s: 'rgb'},
+        {n: "追风者 NV9 全视海景房", p: 1899, s: 'rgb'},
+        {n: "NZXT H9 Flow 纯白", p: 1299, s: 'white'},
+        {n: "联力 O11 Vision 纯白 海景房", p: 1099, s: 'white'},
+        {n: "Fractal Design North 黑色胡桃木", p: 1099, s: 'stealth'},
+        {n: "机械大师 C28 脉冲黑", p: 699, s: 'stealth'},
+        {n: "先马 大境界 黑色海景房", p: 399, s: 'rgb'},
+        {n: "联力 O11 Dynamic EVO XL", p: 1399, s: 'rgb'},
+        {n: "乔思伯 D300 曲面海景房", p: 499, s: 'rgb'},
+        {n: "瓦尔基里 VK03 LITE 白色", p: 349, s: 'white'},
+        {n: "爱国者 YOGO K1 白色", p: 299, s: 'white'},
+        {n: "酷冷至尊 HAF 700 EVO", p: 2499, s: 'rgb'},
+        {n: "迎广 309 白色", p: 899, s: 'white'},
+        {n: "追风者 P500A 黑色", p: 899, s: 'stealth'},
+        {n: "海盗船 5000D AIRFLOW 白色", p: 999, s: 'white'},
+        {n: "安钛克 P20C 黑色", p: 599, s: 'stealth'},
+        {n: "玩嘉 孤勇者 MINI 白色", p: 199, s: 'white'},
+        {n: "金河田 预见 N17 黑色", p: 159, s: 'stealth'},
+        {n: "先马 平头哥 M2", p: 129, s: 'stealth'}
+        ],
+        cooler: [
+        {n: "EK Quantum 准系统分体水冷套件 (工业级)", p: 8999, s: 'stealth', c: 'custom'},
+        {n: "超微/猫头鹰 暴力风冷 (双路服务器级)", p: 1899, s: 'stealth', c: 'air'},
+        {n: "ROG 龙神三代 360 ARGB 水冷", p: 2499, s: 'rgb', c: 'liquid'},
+        {n: "Barrow 分体硬管定制方案 纯白", p: 2599, s: 'white', c: 'custom'},
+        {n: "猫头鹰 NH-D15 G2 旗舰双塔", p: 1299, s: 'stealth', c: 'air'},
+        {n: "瓦尔基里 VK GL360 纯白 水冷", p: 799, s: 'white', c: 'liquid'},
+        {n: "九州风神 阿萨辛4 黑色风冷", p: 599, s: 'stealth', c: 'air'},
+        {n: "利民 冰封幻境 Frozen Magic 360", p: 499, s: 'stealth', c: 'liquid'},
+        {n: "利民 PA120 绝双刺客 白化版", p: 249, s: 'white', c: 'air'},
+        {n: "酷冷至尊 冰神 360 ARGB", p: 699, s: 'rgb', c: 'liquid'},
+        {n: "追风者 Glacier One 360T30", p: 1299, s: 'stealth', c: 'liquid'},
+        {n: "恩杰 Kraken 360 RGB", p: 1099, s: 'rgb', c: 'liquid'},
+        {n: "利民 Frozen Notte 360 黑色", p: 449, s: 'stealth', c: 'liquid'},
+        {n: "九州风神 冰堡垒360 白色", p: 649, s: 'white', c: 'liquid'},
+        {n: "超频三 东海X7 双塔风冷", p: 199, s: 'stealth', c: 'air'},
+        {n: "利民 AX120 R SE 单塔", p: 89, s: 'stealth', c: 'air'},
+        {n: "猫头鹰 NH-U12A chromax.black", p: 899, s: 'stealth', c: 'air'},
+        {n: "利民 FC140 冰封统领", p: 329, s: 'stealth', c: 'air'},
+        {n: "雅浚 G3A 单塔风冷", p: 99, s: 'stealth', c: 'air'},
+        {n: "瓦尔基里 A360 白色水冷", p: 399, s: 'white', c: 'liquid'},
+        {n: "先马 冰川360 ARGB", p: 299, s: 'rgb', c: 'liquid'},
+        {n: "酷冷至尊 暴雪T400i", p: 69, s: 'stealth', c: 'air'},
+        {n: "利民 Frozen Prism 360 ARGB", p: 549, s: 'rgb', c: 'liquid'},
+        {n: "ROG 龙神二代 360 ARGB", p: 1999, s: 'rgb', c: 'liquid'},
+        {n: "Bykski 分体水冷 入门套件", p: 1599, s: 'rgb', c: 'custom'},
+        {n: "EK AIO 360 D-RGB", p: 899, s: 'rgb', c: 'liquid'},
+        {n: "利民 HR-02 Macho Rev.B", p: 399, s: 'stealth', c: 'air'},
+        {n: "九州风神 AK620 黑色", p: 279, s: 'stealth', c: 'air'},
+        {n: "利民 Frozen Magic 240 白色", p: 379, s: 'white', c: 'liquid'},
+        {n: "超频三 凌镜360 ARGB", p: 459, s: 'rgb', c: 'liquid'}
+        ],
+        psu: [
+        {n: "长城 2000W 钛金 冗余双路电源 (矿/AI用)", p: 3599},
+        {n: "华硕 雷神三代 1600W 钛金", p: 3299},
+        {n: "海韵 Vertex 峰睿 1200W ATX3.1 白金", p: 1999},
+        {n: "振华 LEADEX VII 1000W ATX3.1", p: 1299},
+        {n: "海盗船 RM1000e 1000W ATX3.0", p: 1099},
+        {n: "长城 猎金部落 F850W ATX3.1", p: 799},
+        {n: "微星 MAG A750GL 750W", p: 550},
+        {n: "长城 X5 500W", p: 250},
+        {n: "海韵 FOCUS GX-1000 ATX3.0 金牌", p: 1199},
+        {n: "酷冷至尊 V1300 白金 ATX3.0", p: 1799},
+        {n: "安钛克 HCG1000 金牌全模组", p: 999},
+        {n: "振华 LEADEX III 850W 金牌", p: 799},
+        {n: "航嘉 WD850K 金牌全模组", p: 599},
+        {n: "先马 金牌750W 全模组", p: 499},
+        {n: "酷冷至尊 GX III 850W 金牌", p: 749},
+        {n: "海盗船 RM850x 850W 金牌", p: 899},
+        {n: "海韵 FOCUS GX-850 ATX3.0", p: 899},
+        {n: "振华 LEADEX VII 1300W 白金", p: 1599},
+        {n: "华硕 ROG LOKI 1000W SFX-L 白金", p: 1899},
+        {n: "银欣 SX1000-LPT 1000W SFX-L", p: 1499},
+        {n: "全汉 Hydro PTM Pro 1200W 白金", p: 1699},
+        {n: "安钛克 SG1300 1300W 白金", p: 2199},
+        {n: "海盗船 HX1500i 1500W 白金", p: 2499},
+        {n: "海韵 PRIME TX-1600 钛金", p: 3999},
+        {n: "振华 LEADEX VII 1600W 钛金", p: 2899},
+        {n: "微星 MPG A1000G PCIE5 1000W", p: 1099},
+        {n: "技嘉 UD1000GM PG5 1000W", p: 999},
+        {n: "航嘉 MVP K850 850W 金牌", p: 649},
+        {n: "鑫谷 GM850W 冰山金牌", p: 549},
+        {n: "爱国者 ES750 750W 金牌", p: 399},
+        {n: "酷冷至尊 MWE 650W 铜牌", p: 329},
+        {n: "安钛克 NE650 650W 金牌", p: 399},
+        {n: "振华 铜皇 550W 铜牌", p: 279},
+        {n: "长城 600W 铜牌", p: 259},
+        {n: "航嘉 WD600K 600W 金牌", p: 349},
+        {n: "先马 金牌650W 全模组", p: 429},
+        {n: "海韵 CORE GC-650 金牌", p: 449},
+        {n: "海盗船 CV650 650W 铜牌", p: 379},
+        {n: "振华 LEADEX VII 850W 金牌", p: 849},
+        {n: "全汉 Hydro K Pro 750W 金牌", p: 599},
+        {n: "安钛克 HCG750 750W 金牌", p: 649},
+        {n: "微星 MAG A850GL 850W PCIE5", p: 699},
+        {n: "鑫谷 GM1000W 冰山金牌 PCIE5", p: 799},
+        {n: "航嘉 MVP K1000 1000W 金牌", p: 899},
+        {n: "酷冷至尊 V750 SFX 金牌", p: 799},
+        {n: "银欣 SX650-G 650W SFX 金牌", p: 699},
+        {n: "全汉 MSPRO 850W 金牌", p: 579},
+        {n: "振华 LEADEX III 650W 金牌", p: 499},
+        {n: "长城 G7 750W 金牌全模组", p: 529},
+        {n: "海韵 FOCUS GX-750 ATX3.0", p: 749}
+        ]
+    };
+
+    const LAPTOP_DB = [
+        {n: "ROG 冰刃 8 双屏旗舰版", cpu: "Ryzen 9 9945HX", gpu: "RTX 5090 24G", ram: "64G DDR5", ssd: "4TB RAID0", p: 49999, a: 'amd'},
+        {n: "Alienware m18 R3 骨灰版", cpu: "Core Ultra 9 290HX", gpu: "RTX 5090 24G", ram: "64G DDR5", ssd: "4TB SSD", p: 39999, a: 'intel'},
+        {n: "ROG 枪神10 Plus 超竞版", cpu: "Core Ultra 9 290HX", gpu: "RTX 5080 16G", ram: "32G DDR5", ssd: "2TB SSD", p: 28999, a: 'intel'},
+        {n: "微星 泰坦 18 HX 2026", cpu: "Core Ultra 9 290HX", gpu: "RTX 5080 16G", ram: "64G DDR5", ssd: "2TB SSD", p: 25999, a: 'intel'},
+        {n: "联想拯救者 Y9000P 2026 至尊版", cpu: "Core Ultra 9 290HX", gpu: "RTX 5080 16G", ram: "32G DDR5", ssd: "2TB PCIe 5.0", p: 24999, a: 'intel'},
+        {n: "雷蛇 灵刃 16 (2026)", cpu: "Core Ultra 9 290HX", gpu: "RTX 5070 12G", ram: "32G DDR5", ssd: "1TB SSD", p: 22999, a: 'intel'},
+        {n: "联想拯救者 Y9000P 2026 旗舰版", cpu: "Core Ultra 9 290HX", gpu: "RTX 5070 12G", ram: "16G DDR5", ssd: "1TB PCIe 4.0", p: 14999, a: 'intel'},
+        {n: "ROG 幻16 Air 2026", cpu: "Core Ultra 9 290H", gpu: "RTX 5070 12G", ram: "32G LPDDR5X", ssd: "1TB SSD", p: 14999, a: 'intel'},
+        {n: "联想拯救者 R9000P 2026", cpu: "Ryzen 9 9945HX", gpu: "RTX 5070 12G", ram: "32G DDR5", ssd: "1TB SSD", p: 13999, a: 'amd'},
+        {n: "ROG 幻14 Air 2026", cpu: "Ryzen AI 9 HX 370", gpu: "RTX 5060 12G", ram: "32G LPDDR5X", ssd: "1TB SSD", p: 11999, a: 'amd'},
+        {n: "惠普 暗影精灵12 高配", cpu: "Core Ultra 9 290HX", gpu: "RTX 5070 12G", ram: "32G DDR5", ssd: "1TB SSD", p: 11999, a: 'intel'},
+        {n: "ROG 魔霸新锐 2026", cpu: "Core Ultra 7 265HX", gpu: "RTX 5060 12G", ram: "16G DDR5", ssd: "1TB SSD", p: 9999, a: 'intel'},
+        {n: "联想拯救者 Y7000P 2026", cpu: "Core Ultra 7 265HX", gpu: "RTX 5060 12G", ram: "16G DDR5", ssd: "1TB SSD", p: 8999, a: 'intel'},
+        {n: "惠普 暗影精灵12", cpu: "Core Ultra 7 265HX", gpu: "RTX 5060 12G", ram: "16G DDR5", ssd: "1TB SSD", p: 7999, a: 'intel'},
+        {n: "华硕 天选5 Pro 锐龙版", cpu: "Ryzen 7 9800H", gpu: "RTX 5060 12G", ram: "16G DDR5", ssd: "512G SSD", p: 7499, a: 'amd'},
+        {n: "机械革命 翼龙15 Pro", cpu: "Ryzen 7 9800H", gpu: "RTX 5060 12G", ram: "16G DDR5", ssd: "1TB SSD", p: 6499, a: 'amd'},
+        {n: "机械革命 极光Pro 2026", cpu: "Core Ultra 5 245H", gpu: "RTX 5060 12G", ram: "16G DDR5", ssd: "1TB SSD", p: 5999, a: 'intel'},
+        {n: "联想 ThinkPad X1 Carbon Gen 13", cpu: "Core Ultra 7 265V", gpu: "Arc 140V", ram: "32G LPDDR5X", ssd: "1TB SSD", p: 14999, a: 'intel'},
+        {n: "华为 MateBook X Pro 2025", cpu: "Core Ultra 9 285H", gpu: "Arc 140V", ram: "32G LPDDR5X", ssd: "2TB SSD", p: 12999, a: 'intel'},
+        {n: "苹果 MacBook Pro 16 M4 Max", cpu: "Apple M4 Max", gpu: "M4 Max 40核GPU", ram: "48G 统一内存", ssd: "1TB SSD", p: 27999, a: 'apple'},
+        {n: "苹果 MacBook Air 15 M4", cpu: "Apple M4", gpu: "M4 10核GPU", ram: "24G 统一内存", ssd: "512G SSD", p: 10999, a: 'apple'},
+        {n: "戴尔 XPS 16 9640", cpu: "Core Ultra 9 185H", gpu: "RTX 4070 8G", ram: "32G DDR5", ssd: "1TB SSD", p: 18999, a: 'intel'},
+        {n: "微星 绝影16 AI Studio", cpu: "Core Ultra 9 185H", gpu: "RTX 4070 8G", ram: "32G DDR5", ssd: "1TB SSD", p: 12999, a: 'intel'},
+        {n: "联想 小新Pro 16 2025", cpu: "Core Ultra 5 225H", gpu: "Arc 130T", ram: "32G DDR5", ssd: "1TB SSD", p: 6499, a: 'intel'},
+        {n: "荣耀 MagicBook Pro 16 2025", cpu: "Core Ultra 5 225H", gpu: "RTX 5060 8G", ram: "32G DDR5", ssd: "1TB SSD", p: 7999, a: 'intel'},
+        {n: "Redmi G Pro 2025", cpu: "Core i9-14900HX", gpu: "RTX 4060 8G", ram: "16G DDR5", ssd: "1TB SSD", p: 6999, a: 'intel'},
+        {n: "神舟 战神T8 2025", cpu: "Core i7-14650HX", gpu: "RTX 4070 8G", ram: "32G DDR5", ssd: "1TB SSD", p: 8499, a: 'intel'},
+        {n: "七彩虹 将星X16 Pro", cpu: "Core i7-13650HX", gpu: "RTX 4060 8G", ram: "16G DDR5", ssd: "1TB SSD", p: 5999, a: 'intel'},
+        {n: "雷神 猎刃16 2025", cpu: "Core i9-14900HX", gpu: "RTX 4070 8G", ram: "32G DDR5", ssd: "1TB SSD", p: 9999, a: 'intel'},
+        {n: "机械师 曙光16S", cpu: "Core i7-13650HX", gpu: "RTX 4060 8G", ram: "16G DDR5", ssd: "512G SSD", p: 5499, a: 'intel'},
+        {n: "Acer 掠夺者 擎Neo 2025", cpu: "Core i9-14900HX", gpu: "RTX 4070 8G", ram: "16G DDR5", ssd: "1TB SSD", p: 8999, a: 'intel'},
+        {n: "Acer 暗影骑士·擎 2025", cpu: "Core i5-13450HX", gpu: "RTX 4050 6G", ram: "16G DDR5", ssd: "512G SSD", p: 4999, a: 'intel'},
+        {n: "惠普 战99 2025 锐龙版", cpu: "Ryzen 7 8845HS", gpu: "Radeon 780M", ram: "32G DDR5", ssd: "1TB SSD", p: 6999, a: 'amd'},
+        {n: "联想 ThinkBook 16+ 2025", cpu: "Core Ultra 5 225H", gpu: "Arc 130T", ram: "32G DDR5", ssd: "1TB SSD", p: 5999, a: 'intel'},
+        {n: "华硕 无畏Pro 15 2025", cpu: "Core Ultra 5 225H", gpu: "Arc 130T", ram: "16G DDR5", ssd: "512G SSD", p: 4999, a: 'intel'},
+        {n: "小米 Redmi Book Pro 14 2025", cpu: "Core Ultra 5 225H", gpu: "Arc 130T", ram: "16G DDR5", ssd: "512G SSD", p: 4499, a: 'intel'},
+        {n: "ROG 幻13 2025 翻转本", cpu: "Ryzen AI 9 HX 370", gpu: "RTX 4060 8G", ram: "32G LPDDR5X", ssd: "1TB SSD", p: 10999, a: 'amd'},
+        {n: "微星 星影15 锐龙版", cpu: "Ryzen 7 7840HS", gpu: "RTX 4050 6G", ram: "16G DDR5", ssd: "512G SSD", p: 5299, a: 'amd'},
+        {n: "联想 拯救者 R7000 2025", cpu: "Ryzen 7 7840HS", gpu: "RTX 4060 8G", ram: "16G DDR5", ssd: "512G SSD", p: 6499, a: 'amd'},
+        {n: "机械革命 无界14X 锐龙版", cpu: "Ryzen 7 8845HS", gpu: "Radeon 780M", ram: "32G DDR5", ssd: "1TB SSD", p: 3999, a: 'amd'},
+        {n: "苹果 MacBook Air 13 M4", cpu: "Apple M4", gpu: "M4 10核GPU", ram: "16G 统一内存", ssd: "256G SSD", p: 8999, a: 'apple'},
+        {n: "苹果 MacBook Air 13 M4 高配", cpu: "Apple M4", gpu: "M4 10核GPU", ram: "24G 统一内存", ssd: "512G SSD", p: 11499, a: 'apple'},
+        {n: "苹果 MacBook Air 15 M4 高配", cpu: "Apple M4", gpu: "M4 10核GPU", ram: "24G 统一内存", ssd: "512G SSD", p: 12499, a: 'apple'},
+        {n: "苹果 MacBook Pro 14 M4", cpu: "Apple M4", gpu: "M4 10核GPU", ram: "16G 统一内存", ssd: "512G SSD", p: 12999, a: 'apple'},
+        {n: "苹果 MacBook Pro 14 M4 Pro", cpu: "Apple M4 Pro", gpu: "M4 Pro 20核GPU", ram: "24G 统一内存", ssd: "1TB SSD", p: 16999, a: 'apple'},
+        {n: "苹果 MacBook Pro 14 M4 Max", cpu: "Apple M4 Max", gpu: "M4 Max 40核GPU", ram: "36G 统一内存", ssd: "1TB SSD", p: 25999, a: 'apple'},
+        {n: "苹果 MacBook Pro 16 M4 Pro", cpu: "Apple M4 Pro", gpu: "M4 Pro 20核GPU", ram: "24G 统一内存", ssd: "512G SSD", p: 19999, a: 'apple'},
+        {n: "苹果 MacBook Air 13 M3", cpu: "Apple M3", gpu: "M3 8核GPU", ram: "8G 统一内存", ssd: "256G SSD", p: 6999, a: 'apple'},
+        {n: "苹果 MacBook Pro 14 M3", cpu: "Apple M3", gpu: "M3 10核GPU", ram: "8G 统一内存", ssd: "512G SSD", p: 10999, a: 'apple'},
+        {n: "苹果 Mac Studio M4 Max", cpu: "Apple M4 Max", gpu: "M4 Max 40核GPU", ram: "36G 统一内存", ssd: "512G SSD", p: 16499, a: 'apple'},
+        {n: "苹果 Mac Studio M3 Ultra", cpu: "Apple M3 Ultra", gpu: "M3 Ultra 76核GPU", ram: "64G 统一内存", ssd: "1TB SSD", p: 32999, a: 'apple'},
+        {n: "苹果 Mac mini M4", cpu: "Apple M4", gpu: "M4 10核GPU", ram: "16G 统一内存", ssd: "256G SSD", p: 4499, a: 'apple'},
+        {n: "苹果 Mac mini M4 Pro", cpu: "Apple M4 Pro", gpu: "M4 Pro 20核GPU", ram: "24G 统一内存", ssd: "512G SSD", p: 8999, a: 'apple'}
+    ];
+
+    function generateLaptopDB() { return LAPTOP_DB.slice(); }
+
+    function findBest(arr, targetPrice, filters = {}) {
+        let valid = arr.filter(item => {
+            for (let k in filters) { if (item[k] !== undefined && item[k] !== filters[k]) return false; }
+            return true;
+        });
+        if(valid.length === 0 && filters.s) {
+            let softFilters = {...filters}; delete softFilters.s;
+            valid = arr.filter(item => {
+                for (let k in softFilters) { if (item[k] !== undefined && item[k] !== softFilters[k]) return false; }
+                return true;
+            });
+        }
+        if(valid.length === 0) valid = arr;
+        valid.sort((a,b) => Math.abs(a.p - targetPrice) - Math.abs(b.p - targetPrice));
+        return valid[0];
+    }
+
+    function getTop3Laptops(arch, budget) {
+        const db = generateLaptopDB();
+        let valid = db.filter(x => x.a === arch);
+        if(valid.length < 3) valid = db;
+        let affordable = valid.filter(x => x.p <= budget).sort((a,b) => b.p - a.p);
+        if(affordable.length < 3) {
+            valid.sort((a,b) => a.p - b.p);
+            return [valid[0], valid[1] || valid[0], valid[2] || valid[0]];
+        }
+        return [affordable[0], affordable[1], affordable[2]];
+    }
+
+    const USAGE_WEIGHTS = {
+        game:    { c: 0.20, g: 0.45, r: 0.06, s: 0.06, m: 0.10, ca: 0.04, co: 0.04, p: 0.05 },
+        ai:      { c: 0.10, g: 0.55, r: 0.10, s: 0.05, m: 0.08, ca: 0.03, co: 0.04, p: 0.05 },
+        dev:     { c: 0.35, g: 0.15, r: 0.15, s: 0.10, m: 0.10, ca: 0.05, co: 0.05, p: 0.05 },
+        edit:    { c: 0.25, g: 0.35, r: 0.10, s: 0.10, m: 0.08, ca: 0.04, co: 0.03, p: 0.05 },
+        server:  { c: 0.35, g: 0.05, r: 0.20, s: 0.15, m: 0.10, ca: 0.05, co: 0.05, p: 0.05 },
+        office:  { c: 0.35, g: 0.10, r: 0.15, s: 0.10, m: 0.12, ca: 0.08, co: 0.05, p: 0.05 },
+        student: { c: 0.25, g: 0.30, r: 0.10, s: 0.10, m: 0.10, ca: 0.05, co: 0.05, p: 0.05 }
+    };
+
+    function runNexusAlgorithmCore() {
+        const bud = parseFloat(document.getElementById('budget').value);
+        const form = document.getElementById('form').value;
+        const arch = document.getElementById('arch').value;
+        const use = document.getElementById('usage').value;
+        const style = document.getElementById('style').value;
+        const cool = document.getElementById('cool').value;
+
+        let cfg = {};
+
+        if (form === 'desktop' && arch !== 'apple') {
+            const W = USAGE_WEIGHTS[use] || USAGE_WEIGHTS.student;
+            let cpu = findBest(DB.cpu, bud * W.c, {a: arch});
+            let gpu = findBest(DB.gpu, bud * W.g);
+            let mobo = findBest(DB.mobo, bud * W.m, {a: arch, s: style});
+            let ram = findBest(DB.ram, bud * W.r, {s: style});
+            let ssd = findBest(DB.ssd, bud * W.s);
+            let caseObj = findBest(DB.case, bud * W.ca, {s: style});
+            let cooler = findBest(DB.cooler, cool === 'custom' ? Math.max(3000, bud * 0.1) : bud * W.co, {c: cool, s: style});
+            let psu = findBest(DB.psu, bud * W.p);
+
+            let totalPrice = cpu.p + gpu.p + mobo.p + ram.p + ssd.p + caseObj.p + cooler.p + psu.p;
+
+            cfg = {
+                isLaptop: false,
+                title: `Nexus 2026 Hyper-Custom Build [ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}]`,
+                price: totalPrice,
+                cpu: cpu.n,
+                gpu: gpu.n,
+                ram: ram.n,
+                ssd: ssd.n,
+                extra: `主板: ${mobo.n} | 机箱: ${caseObj.n} | 散热: ${cooler.n} | 电源: ${psu.n}`,
+                totalComb: `基于 [${use.toUpperCase()}] 场景算力加权切分`
+            };
+        } else {
+            const top3 = getTop3Laptops(arch, bud);
+            const best = top3[0];
+            cfg = {
+                isLaptop: true,
+                title: `🏆 重点推荐：${best.n}`,
+                price: best.p,
+                cpu: best.cpu,
+                gpu: best.gpu,
+                ram: best.ram,
+                ssd: best.ssd,
+                extra: arch === 'apple' && form === 'desktop' ? "Apple 原厂整机 / Mac 台式，macOS 生态闭环" : "厂配整机 SKU，支持原厂三年联保",
+                totalComb: "53 真实笔电SKU全库扫描",
+                alt1: top3[1],
+                alt2: top3[2]
+            };
+        }
+
+        renderResult(cfg, use);
+        var resultSec = document.querySelector('.result-section');
+        if (resultSec) resultSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    window.runNexusAlgorithmCore = runNexusAlgorithmCore;
+
+    function renderResult(c, u) {
+        const res = document.getElementById('resultCard');
+        res.style.display = "block";
+        const feedbacks = {
+            game: "游戏适配：开启 DLSS 4.5 / FSR 4 超帧优化，预算集中释放至 GPU。",
+            ai: "AI 适配：针对大语言模型与 Stable Diffusion 本地出图，全力保障大显存与显存带宽。",
+            dev: "编程适配：针对多核编译专项拉高 CPU 与内存权重，Docker / 虚拟机跑满不卡顿。",
+            server: "服务器适配：剥离冗余图形开销，内存与固态阵列预算翻倍，保障 7x24 小时高并发。",
+            office: "办公适配：低功耗静音调校，转移预算至高品质做工与静音配件。",
+            student: "学生适配：全能平衡设计，兼顾论文排版与 3A 大作娱乐。",
+            edit: "剪辑适配：CPU+GPU 双修统筹，内存加码，针对 4K H.265 / AV1 渲染专项倾斜。"
+        };
+
+        let altHtml = '';
+        if (c.isLaptop) {
+            altHtml = `
+                <div class="alt-laptops">
+                    <h6>[ 降维 / 备选方案 MATRIX ]</h6>
+                    <div class="alt-item">
+                        <div>🥈 <b>${c.alt1.n}</b> <br><small style="color:#556;">${c.alt1.cpu} / ${c.alt1.gpu} / ${c.alt1.ram}</small></div>
+                        <span>¥${c.alt1.p.toLocaleString()}</span>
+                    </div>
+                    <div class="alt-item">
+                        <div>🥉 <b>${c.alt2.n}</b> <br><small style="color:#556;">${c.alt2.cpu} / ${c.alt2.gpu} / ${c.alt2.ram}</small></div>
+                        <span>¥${c.alt2.p.toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        res.innerHTML = `
+            <div style="color:var(--neon-link); letter-spacing:8px; font-weight:900; margin-bottom:20px;">[ ALGORITHM CALCULATION COMPLETE ]</div>
+            <div style="font-size:1.2rem; color:#666;">配置矩阵状态: ${c.totalComb}</div>
+            <div class="price-massive">¥${Math.floor(c.price).toLocaleString()}</div>
+            <div style="font-size:1.8rem; color:var(--neon-link); margin-bottom:40px;">${c.title}</div>
+
+            <div class="node-grid">
+                <div class="node-item"><span>计算核心 (CPU)</span><b>${c.cpu}</b></div>
+                <div class="node-item"><span>图形处理 (GPU)</span><b>${c.gpu}</b></div>
+                <div class="node-item"><span>神经矩阵 (RAM)</span><b>${c.ram}</b></div>
+                <div class="node-item"><span>持久层存储 (SSD)</span><b>${c.ssd}</b></div>
+                <div class="node-item" style="grid-column: span 2;"><span>基础拓扑架构 (Base)</span><b>${c.extra}</b></div>
+            </div>
+
+            ${altHtml}
+
+            <div class="ai-feedback">
+                <h6>场景锁定动态反馈 [${u.toUpperCase()}]</h6>
+                <p>${feedbacks[u]}</p>
+            </div>
+            <div style="margin-top:50px; text-align:right; font-size:0.6rem; color:#222; letter-spacing:5px;">NEXUS-2026-TITAN-DB</div>
+        `;
+        setTimeout(() => res.style.opacity = "1", 100);
+    }
+</script>
+<script src="/config-pc/site.js?v=665p"></script>
+</body>
+</html>
